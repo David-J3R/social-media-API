@@ -1,0 +1,9 @@
+.env
+.DS_Store # macOS system file
+__pycache__
+*.pyc
+*.db
+.vscode/
+*.png
+*.jpg
+*.jpeg
