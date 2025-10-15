@@ -51,6 +51,9 @@ async def create_comment(comment: CommentIn):
 @router.get("/post/{post_id}/comments", response_model=list[Comment])
 # pydantic detects the post_id from the path
 async def get_comments_on_post(post_id: int):
+    post = find_post(post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
     return [
         comment for comment in comments_table.values() if comment["post_id"] == post_id
     ]
