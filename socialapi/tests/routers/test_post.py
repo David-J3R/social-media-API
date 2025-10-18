@@ -23,7 +23,7 @@ async def test_create_post(async_client: AsyncClient):
 
     assert response.status_code == 201
     # using <= to check if the expected items are in the response
-    assert {"id": 0, "body": body}.items() <= response.json().items()
+    assert {"id": 1, "body": body}.items() <= response.json().items()
 
 
 # Test missing body in create_post
@@ -71,7 +71,7 @@ async def test_create_comment(async_client: AsyncClient, created_post: dict):
 
     assert response.status_code == 201
     assert {
-        "id": 0,
+        "id": 1,
         "body": body,
         "post_id": created_post["id"],
     }.items() <= response.json().items()
@@ -134,5 +134,5 @@ async def test_get_post_with_comments(
 async def test_get_missing_post_with_comments(
     async_client: AsyncClient, created_post: dict, created_comment: dict
 ):
-    response = await async_client.get("/post/1")
+    response = await async_client.get("/post/0")  # Non-existent post ID
     assert response.status_code == 404  # Not Found

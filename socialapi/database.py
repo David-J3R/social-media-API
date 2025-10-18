@@ -1,6 +1,8 @@
 import databases
 import sqlalchemy
-from config import config
+
+# Config from our folder pydantic configuration file
+from socialapi.config import config
 
 # Using Encode Databases for async database connections
 

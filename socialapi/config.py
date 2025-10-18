@@ -8,7 +8,7 @@ class BaseConfig(BaseSettings):
     ENV_STATE: Optional[str] = None
 
     # Load environment variables from a .env file using new Pydantic v2 syntax
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 class GlobalConfig(BaseConfig):
@@ -22,7 +22,7 @@ class DevConfig(GlobalConfig):
 
 class TestConfig(GlobalConfig):
     # Use an in-memory SQLite database for tests
-    DATABASE_URL: str = "sqlite:///:memory:"  # Ensure tests use a test database
+    DATABASE_URL: str = "sqlite:///test.db"  # Ensure tests use a test database
     DB_FORCE_ROLL_BACK: bool = True
     model_config = SettingsConfigDict(env_prefix="TEST_")
 

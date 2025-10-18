@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class UserPostIn(BaseModel):
@@ -6,6 +6,11 @@ class UserPostIn(BaseModel):
 
 
 class UserPost(UserPostIn):  # Class inheritance
+    # Remember to set model_config for Pydantic v2
+    # and for ORM mode
+    model_config = ConfigDict(
+        from_attributes=True
+    )  # for Pydantic dealing with ORM objects
     id: int
 
 
@@ -16,6 +21,9 @@ class CommentIn(BaseModel):
 
 
 class Comment(CommentIn):
+    model_config = ConfigDict(
+        from_attributes=True
+    )  # for Pydantic dealing with ORM objects
     id: int
 
 
