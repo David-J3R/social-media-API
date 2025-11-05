@@ -1,0 +1,23 @@
+2025-10-30T17:52:26.497Z | INFO     | socialapi.main:18 - Starting up connection...
+2025-10-30T17:52:26.505Z | INFO     | uvicorn.error:62 - Application startup complete.
+2025-10-30T17:52:26.507Z | INFO     | uvicorn.error:216 - Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2025-10-30T17:52:33.000Z | DEBUG    | socialapi.routers.post:52 - Executing query: SELECT post.id, post.body 
+FROM post
+2025-10-30T17:52:33.006Z | INFO     | uvicorn.access:476 - 127.0.0.1:53257 - "GET /post HTTP/1.1" 200
+2025-10-30T17:52:46.064Z | DEBUG    | socialapi.routers.post:52 - Executing query: SELECT post.id, post.body 
+FROM post
+2025-10-30T17:52:46.127Z | INFO     | uvicorn.access:476 - 127.0.0.1:53270 - "GET /post HTTP/1.1" 200
+2025-10-30T17:53:29.018Z | INFO     | uvicorn.error:264 - Shutting down
+2025-10-30T17:53:29.127Z | INFO     | uvicorn.error:67 - Waiting for application shutdown.
+2025-10-30T17:53:29.128Z | INFO     | uvicorn.error:76 - Application shutdown complete.
+2025-10-30T17:53:29.129Z | INFO     | uvicorn.error:94 - Finished server process [23624]
+2025-11-05T16:22:27.584Z | INFO     | [-] socialapi.main:20 - Starting up connection...
+2025-11-05T16:22:27.588Z | INFO     | [-] uvicorn.error:62 - Application startup complete.
+2025-11-05T16:22:27.592Z | INFO     | [-] uvicorn.error:216 - Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2025-11-05T16:23:23.807Z | DEBUG    | [e6117606] socialapi.routers.post:53 - Executing query: SELECT post.id, post.body 
+FROM post
+2025-11-05T16:23:23.859Z | INFO     | [e6117606] uvicorn.access:476 - 127.0.0.1:61036 - "GET /post HTTP/1.1" 200
+2025-11-05T16:28:27.364Z | INFO     | [-] uvicorn.error:264 - Shutting down
+2025-11-05T16:28:27.471Z | INFO     | [-] uvicorn.error:67 - Waiting for application shutdown.
+2025-11-05T16:28:27.471Z | INFO     | [-] uvicorn.error:76 - Application shutdown complete.
+2025-11-05T16:28:27.474Z | INFO     | [-] uvicorn.error:94 - Finished server process [22940]

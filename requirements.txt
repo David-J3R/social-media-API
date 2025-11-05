@@ -4,3 +4,5 @@ sqlalchemy
 databases[aiosqlite] # or databases[asyncpg] for PostgreSQL
 python-dotenv
 pydantic-settings
+rich
+asgi-correlation-id
