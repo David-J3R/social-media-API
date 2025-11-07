@@ -1,13 +1,20 @@
 import datetime
 import logging
+from typing import Annotated
 
-from fastapi import HTTPException, status
-from jose import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
 from socialapi.database import database, user_table
 
 logger = logging.getLogger(__name__)
+
+# Grab token from the Authorization header
+# This is used in routes to get the token
+# if we do oauth2_scheme() we get the token string
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # --- Access Token (JWT) Management ---
 # Not a good practice to hardcode secret keys in code.
@@ -56,7 +63,9 @@ async def get_user(email: str):
 
 # --- Authentication Functionality ---
 credentials_exception = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials"
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
 )
 
 
@@ -66,5 +75,27 @@ async def authenticate_user(email: str, password: str):
     if not user:
         raise credentials_exception
     if not verify_password(password, user.password):
+        raise credentials_exception
+    return user
+
+
+# get current user from token
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
+    try:
+        payload = jwt.decode(token, key=SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except ExpiredSignatureError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+    except JWTError as e:
+        raise credentials_exception from e
+
+    user = await get_user(email)
+    if user is None:
         raise credentials_exception
     return user
