@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 os.environ["ENV_STATE"] = "test"
-from socialapi.database import database
+from socialapi.database import database, user_table
 from socialapi.main import app  # noqa: E402
 
 
@@ -47,3 +47,18 @@ async def async_client(client) -> AsyncGenerator:
     ) as ac:
         yield ac
         # Once the test finishes, the `async with` block automatically handles the teardown/cleanup.
+
+
+# --- User fixtures ---
+@pytest.fixture()
+async def registered_user(async_client: AsyncClient) -> dict:
+    user_details = {"email": "test@example.com", "password": "NotSecure123!"}
+    await async_client.post("/register", json=user_details)
+
+    # Return with user id
+    query = user_table.select().where(user_table.c.email == user_details["email"])
+    user = await database.fetch_one(query)
+    assert user is not None, "User registration failed"
+    user_details["id"] = user["id"]
+
+    return user_details

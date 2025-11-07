@@ -7,6 +7,7 @@ from socialapi.config import config
 # Using Encode Databases for async database connections
 
 # --- Create database schema and engine ---
+# metadata object to hold our table definitions
 metadata = sqlalchemy.MetaData()
 
 post_table = sqlalchemy.Table(
@@ -14,6 +15,15 @@ post_table = sqlalchemy.Table(
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
     sqlalchemy.Column("body", sqlalchemy.String),
+)
+
+# Users table for authentication purposes
+user_table = sqlalchemy.Table(
+    "users",
+    metadata,
+    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
+    sqlalchemy.Column("email", sqlalchemy.String, unique=True),
+    sqlalchemy.Column("password", sqlalchemy.String),
 )
 
 comment_table = sqlalchemy.Table(

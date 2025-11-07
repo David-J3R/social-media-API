@@ -2,4 +2,7 @@ ruff
 black
 isort
 pytest
+pytest-asyncio  # for async test support
 httpx
+pytest-mock # lightweight mocking for tests
+anyio  # for anyio backend support in tests

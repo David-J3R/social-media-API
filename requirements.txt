@@ -6,3 +6,8 @@ python-dotenv
 pydantic-settings
 rich
 asgi-correlation-id
+python-json-logger
+python-jose # for JWT authentication
+python-multipart # for file uploads
+passlib[bcrypt] # for password hashing
+bcrypt==3.2.2  # Pinned for passlib compatibility
