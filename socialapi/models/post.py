@@ -12,6 +12,12 @@ class UserPost(UserPostIn):  # Class inheritance
         from_attributes=True
     )  # for Pydantic dealing with ORM objects
     id: int
+    user_id: int
+
+
+# Post with Likes
+class UserPostWithLikes(UserPost):
+    likes: int
 
 
 # ----- Comments -----
@@ -25,10 +31,11 @@ class Comment(CommentIn):
         from_attributes=True
     )  # for Pydantic dealing with ORM objects
     id: int
+    user_id: int
 
 
 class UserPostWithComments(BaseModel):
-    post: UserPost
+    post: UserPostWithLikes
     comments: list[Comment]
 
 
@@ -39,3 +46,16 @@ class UserPostWithComments(BaseModel):
 "comments": [{"id": 1, "post_id": 1, "body": "Great post!"}, {"id": 2, "post_id": 2, "body": "Thanks for sharing!"}]
 }
 """
+
+
+# ----- Likes -----
+class PostLikeIn(BaseModel):
+    post_id: int
+
+
+class PostLike(PostLikeIn):
+    model_config = ConfigDict(
+        from_attributes=True
+    )  # for Pydantic dealing with ORM objects
+    id: int
+    user_id: int

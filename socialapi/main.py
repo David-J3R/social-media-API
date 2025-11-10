@@ -25,6 +25,7 @@ async def lifespan(app: FastAPI):
     await database.disconnect()
 
 
+# The lifespan function is passed to FastAPI to manage startup and shutdown events
 app = FastAPI(lifespan=lifespan)
 # Add Correlation ID Middleware
 app.add_middleware(CorrelationIdMiddleware)

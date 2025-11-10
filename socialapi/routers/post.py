@@ -1,15 +1,20 @@
 import logging
+from enum import Enum
 from typing import Annotated
 
+import sqlalchemy
 from fastapi import APIRouter, Depends, HTTPException
 
-from socialapi.database import comment_table, database, post_table
+from socialapi.database import comment_table, database, like_table, post_table
 from socialapi.models.post import (
     Comment,
     CommentIn,
+    PostLike,
+    PostLikeIn,
     UserPost,
     UserPostIn,
     UserPostWithComments,
+    UserPostWithLikes,
 )
 from socialapi.models.user import User
 from socialapi.security import get_current_user
@@ -22,6 +27,13 @@ logger = logging.getLogger(__name__)
 # Temporary in-memory storage
 # posts_table = {}
 # comments_table = {}
+
+# Query to select posts with like counts
+select_post_and_likes = (
+    sqlalchemy.select(post_table, sqlalchemy.func.count(like_table.c.id).label("likes"))
+    .select_from(post_table.outerjoin(like_table))
+    .group_by(post_table.c.id)
+)
 
 
 async def find_post(post_id: int):
@@ -37,7 +49,10 @@ async def find_post(post_id: int):
 async def create_post(
     post: UserPostIn, current_user: Annotated[User, Depends(get_current_user)]
 ):
-    data = post.model_dump()  # Use "post.dict()" for Pydantic v1
+    data = {
+        **post.model_dump(),
+        "user_id": current_user.id,
+    }  # Use "post.dict()" for Pydantic v1
     query = post_table.insert().values(data)
 
     # Log the query
@@ -50,9 +65,32 @@ async def create_post(
     }  # The ** unpacks the data dictionary into key-value pairs
 
 
-@router.get("/post", response_model=list[UserPost])  # List of posts
-async def get_all_posts():
-    query = post_table.select()
+# Using Enum for sorting options
+class PostSorting(str, Enum):
+    recent = "recent"
+    oldest = "oldest"
+    popular = "popular"
+
+
+@router.get("/post", response_model=list[UserPostWithLikes])  # List of posts with likes
+async def get_all_posts(
+    sorting: PostSorting = PostSorting.recent,
+):  # http://localhost:8000/post?sorting=popular
+    # if sorting == PostSorting.recent:
+    #     query = select_post_and_likes.order_by(post_table.c.id.desc())
+    # elif sorting == PostSorting.oldest:
+    #     query = select_post_and_likes.order_by(post_table.c.id.asc())
+    # elif sorting == PostSorting.popular:
+    #     query = select_post_and_likes.order_by(sqlalchemy.desc("likes"))
+
+    # Using the match-case statement (Python 3.10+)
+    match sorting:
+        case PostSorting.recent:
+            query = select_post_and_likes.order_by(post_table.c.id.desc())
+        case PostSorting.oldest:
+            query = select_post_and_likes.order_by(post_table.c.id.asc())
+        case PostSorting.popular:
+            query = select_post_and_likes.order_by(sqlalchemy.desc("likes"))
 
     # log the query
     logger.debug(f"Executing query: {query}")
@@ -70,7 +108,10 @@ async def create_comment(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    data = comment.model_dump()
+    data = {
+        **comment.model_dump(),
+        "user_id": current_user.id,
+    }
     query = comment_table.insert().values(data)
     last_record_id = await database.execute(query)
     return {**data, "id": last_record_id}
@@ -91,12 +132,40 @@ async def get_comments_on_post(post_id: int):
 
 @router.get("/post/{post_id}", response_model=UserPostWithComments)
 async def get_post_with_comments(post_id: int):
-    post = await find_post(post_id)
+    # Fetch post with like count
+    query = select_post_and_likes.where(post_table.c.id == post_id)
+
+    logger.debug(query)
+
+    post = await database.fetch_one(query)
+
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # The output must match the UserPostWithComments model
+    # The output must match the UserPostWithComments model (post, comments, and likes)
     return {
         "post": post,
         "comments": await get_comments_on_post(post_id),
     }
+
+
+# ---- Likes endpoints -----
+@router.post("/like", response_model=PostLike, status_code=201)
+async def like_post(
+    like: PostLikeIn, current_user: Annotated[User, Depends(get_current_user)]
+):
+    logger.info("Liking a post")
+
+    # Validate that the post exists
+    post = await find_post(like.post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    data = {**like.model_dump(), "user_id": current_user.id}
+    query = like_table.insert().values(data)
+
+    # Log the query
+    logger.debug(query)
+    # Execute the query
+    last_record_id = await database.execute(query)
+    return {**data, "id": last_record_id}

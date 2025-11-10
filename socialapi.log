@@ -35,3 +35,14 @@ FROM post
 {"asctime": "2025-11-05T16:46:36", "msecs": 324.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 67, "message": "Waiting for application shutdown."}
 {"asctime": "2025-11-05T16:46:36", "msecs": 327.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 76, "message": "Application shutdown complete."}
 {"asctime": "2025-11-05T16:46:36", "msecs": 328.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 94, "message": "Finished server process [36528]", "color_message": "Finished server process [\u001b[36m%d\u001b[0m]"}
+{"asctime": "2025-11-07T17:30:26", "msecs": 18.0, "levelname": "INFO", "correlation_id": "-", "name": "socialapi.main", "lineno": 22, "message": "Starting up connection..."}
+{"asctime": "2025-11-07T17:30:26", "msecs": 22.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 62, "message": "Application startup complete."}
+{"asctime": "2025-11-07T17:30:26", "msecs": 26.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 216, "message": "Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)", "color_message": "Uvicorn running on \u001b[1m%s://%s:%d\u001b[0m (Press CTRL+C to quit)"}
+{"asctime": "2025-11-07T17:30:28", "msecs": 301.0, "levelname": "INFO", "correlation_id": "017fe923", "name": "uvicorn.access", "lineno": 476, "message": "127.0.0.1:54142 - \"GET / HTTP/1.1\" 404"}
+{"asctime": "2025-11-07T17:30:28", "msecs": 480.0, "levelname": "INFO", "correlation_id": "f5a7d778", "name": "uvicorn.access", "lineno": 476, "message": "127.0.0.1:54142 - \"GET /favicon.ico HTTP/1.1\" 404"}
+{"asctime": "2025-11-07T17:30:41", "msecs": 388.0, "levelname": "INFO", "correlation_id": "7a2bac30", "name": "uvicorn.access", "lineno": 476, "message": "127.0.0.1:61410 - \"GET /docs HTTP/1.1\" 200"}
+{"asctime": "2025-11-07T17:30:41", "msecs": 728.0, "levelname": "INFO", "correlation_id": "6ce7a799", "name": "uvicorn.access", "lineno": 476, "message": "127.0.0.1:61410 - \"GET /openapi.json HTTP/1.1\" 200"}
+{"asctime": "2025-11-07T17:32:07", "msecs": 994.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 264, "message": "Shutting down"}
+{"asctime": "2025-11-07T17:32:08", "msecs": 96.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 67, "message": "Waiting for application shutdown."}
+{"asctime": "2025-11-07T17:32:08", "msecs": 99.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 76, "message": "Application shutdown complete."}
+{"asctime": "2025-11-07T17:32:08", "msecs": 99.0, "levelname": "INFO", "correlation_id": "-", "name": "uvicorn.error", "lineno": 94, "message": "Finished server process [36592]", "color_message": "Finished server process [\u001b[36m%d\u001b[0m]"}

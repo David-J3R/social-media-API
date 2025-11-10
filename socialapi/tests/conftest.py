@@ -68,5 +68,12 @@ async def registered_user(async_client: AsyncClient) -> dict:
 @pytest.fixture()
 async def logged_in_token(async_client: AsyncClient, registered_user: dict) -> str:
     # pydantic use only the fields required for the model
-    response = await async_client.post("/token", json=registered_user)
+    response = await async_client.post(
+        "/token",
+        # use the registered user's credentials to get a token
+        data={
+            "username": registered_user["email"],
+            "password": registered_user["password"],
+        },
+    )
     return response.json()["access_token"]

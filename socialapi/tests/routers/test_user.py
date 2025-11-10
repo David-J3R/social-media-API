@@ -30,7 +30,9 @@ async def test_register_existing_user(async_client: AsyncClient, registered_user
 @pytest.mark.anyio
 async def test_login_user_not_exists(async_client: AsyncClient):
     response = await async_client.post(
-        "/token", json={"email": "test@example.com", "password": "NotSecure123!"}
+        # using data since OAuth2PasswordRequestForm expects form data
+        "/token",
+        data={"username": "example@example.com", "password": "WrongPassword!"},
     )
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -39,8 +41,9 @@ async def test_login_user_not_exists(async_client: AsyncClient):
 async def test_login_user(async_client: AsyncClient, registered_user: dict):
     response = await async_client.post(
         "/token",
-        json={
-            "email": registered_user["email"],
+        # using data since OAuth2PasswordRequestForm expects form data
+        data={
+            "username": registered_user["email"],
             "password": registered_user["password"],
         },
     )
