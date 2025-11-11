@@ -65,8 +65,66 @@ async def test_create_post_missing_body(
 async def test_get_all_posts(async_client: AsyncClient, created_post: dict):
     response = await async_client.get("/post")
 
-    assert response.status_code == 200
-    assert response.json() == [created_post]
+    assert response.status_code == status.HTTP_200_OK
+    # Add likes key with value 0 to the created_post for comparison
+    assert response.json() == [{**created_post, "likes": 0}]  # No likes yet
+    # Alternative option using inclusion
+    # assert created_post.items() <= response.json()[0].items()
+
+
+# Test get_all_posts with sorting
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    # using parameterize to test multiple sorting options
+    "sorting, expected_order",
+    [
+        ("recent", [2, 1]),
+        ("oldest", [1, 2]),
+    ],
+)
+async def test_get_all_posts_sorting(
+    async_client: AsyncClient,
+    logged_in_token: str,
+    sorting: str,
+    expected_order: list[int],
+):
+    # create multiple posts
+    await create_post("Test Post 1", async_client, logged_in_token)
+    await create_post("Test Post 2", async_client, logged_in_token)
+
+    response = await async_client.get("/post", params={"sorting": sorting})
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    post_ids = [post["id"] for post in data]
+    assert post_ids == expected_order
+
+
+# Test get_all_post with like sorting
+@pytest.mark.anyio
+async def test_get_all_posts_sort_likes(
+    async_client: AsyncClient,
+    logged_in_token: str,
+):
+    # create multiple posts
+    await create_post("Test Post 1", async_client, logged_in_token)
+    await create_post("Test Post 2", async_client, logged_in_token)
+    await like_post(1, async_client, logged_in_token)  # Like post 1 once
+
+    response = await async_client.get("/post", params={"sorting": "popular"})
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    expected_order = [1, 2]
+    post_ids = [post["id"] for post in data]
+    assert post_ids == expected_order
+
+
+# Test wrong post sorting option
+@pytest.mark.anyio
+async def test_get_all_posts_invalid_sorting(async_client: AsyncClient):
+    response = await async_client.get("/post", params={"sorting": "invalid"})
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 # Test create post when token has expired
