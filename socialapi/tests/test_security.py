@@ -30,12 +30,83 @@ def test_access_token_expiry_minutes():
     assert security.access_token_expiry_minutes() == 30
 
 
+def test_confirm_token_expiry_minutes():
+    assert security.confirm_token_expiry_minutes() == 1440
+
+
 # test creating access token
 def test_create_access_token():
     token = security.create_access_token("test@example.com")
-    assert {"sub": "test@example.com"}.items() <= jwt.decode(
+    assert {"sub": "test@example.com", "type": "access"}.items() <= jwt.decode(
         token, key=security.SECRET_KEY, algorithms=[security.ALGORITHM]
     ).items()
+
+
+def test_create_confirmation_token():
+    token = security.create_confirmation_token("test@example.com")
+    assert {"sub": "test@example.com", "type": "confirmation"}.items() <= jwt.decode(
+        token, key=security.SECRET_KEY, algorithms=[security.ALGORITHM]
+    ).items()
+
+
+# Test get subject for token type - valid token confirmation
+def test_get_subject_for_token_type_valid_confirmation():
+    email = "test@example.com"
+    token = security.create_confirmation_token(email)
+    assert email == security.get_subject_for_token_type(token, "confirmation")
+
+
+# Test get subject for token type - valid token access
+def test_get_subject_for_token_type_valid_access():
+    email = "test@example.com"
+    token = security.create_access_token(email)
+    assert email == security.get_subject_for_token_type(token, "access")
+
+
+# Test get subject for token type - expire token type
+def test_get_subject_for_token_type_expired(mocker):
+    mocker.patch("socialapi.security.access_token_expiry_minutes", return_value=-1)
+    email = "test@example.com"
+    token = security.create_access_token(email)
+    with pytest.raises(security.HTTPException) as exc_info:
+        security.get_subject_for_token_type(token, "access")
+    assert "Token has expired" == exc_info.value.detail
+
+
+# Test get subject for token type - invalid token
+def test_get_subject_for_token_type_invalid():
+    token = "invalidtoken"
+    with pytest.raises(security.HTTPException) as exc_info:
+        security.get_subject_for_token_type(token, "access")
+    assert "Token is invalid" == exc_info.value.detail
+
+
+# Test missing sub in token
+def test_get_subject_for_token_type_missing_sub():
+    email = "test@example.com"
+    token = security.create_access_token(email)
+    # Decode token to manipulate payload
+    payload = jwt.decode(
+        token, key=security.SECRET_KEY, algorithms=[security.ALGORITHM]
+    )
+    del payload["sub"]
+    # Re-encode token without 'sub'
+    manipulated_token = jwt.encode(
+        payload, key=security.SECRET_KEY, algorithm=security.ALGORITHM
+    )
+
+    with pytest.raises(security.HTTPException) as exc_info:
+        security.get_subject_for_token_type(manipulated_token, "access")
+    assert "Token is missing 'sub' field" == exc_info.value.detail
+
+
+# Test wrong type of token
+def test_get_subject_for_token_type_wrong_type():
+    email = "test@example.com"
+    token = security.create_confirmation_token(email)
+    with pytest.raises(security.HTTPException) as exc_info:
+        security.get_subject_for_token_type(token, "access")
+    assert "Token has incorrect type, expected: 'access'" == exc_info.value.detail
 
 
 # test authenticating user
@@ -74,3 +145,11 @@ async def test_get_current_user(registered_user: dict):
 async def test_get_current_user_invalid_token():
     with pytest.raises(security.HTTPException):
         await security.get_current_user("invalidtoken")
+
+
+# test get the current user with invalid token type
+@pytest.mark.anyio
+async def test_get_current_user_invalid_token_type(registered_user: dict):
+    token = security.create_confirmation_token(registered_user["email"])
+    with pytest.raises(security.HTTPException):
+        await security.get_current_user(token)
