@@ -1,10 +1,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from fastapi.params import Depends
 from fastapi.security import OAuth2PasswordRequestForm
 
+from socialapi import task
 from socialapi.database import database, user_table
 from socialapi.models.user import UserIn
 from socialapi.security import (
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/register", status_code=201)
-async def register(user: UserIn, request: Request):
+async def register(user: UserIn, background_tasks: BackgroundTasks, request: Request):
     if await get_user(user.email):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -36,18 +37,23 @@ async def register(user: UserIn, request: Request):
     logger.debug(query)
 
     await database.execute(query)
-    return {
-        "detail": "User registered successfully.",
-        "confirmation_url": request.url_for(
-            "confirm_email", token=create_confirmation_token(user.email)
-        ),
-    }
+    # Send Confirmation Email
+    background_tasks.add_task(
+        task.send_user_registration_email(
+            user.email,
+            confirmation_url=request.url_for(
+                "confirm_email", token=create_confirmation_token(user.email)
+            ),  # type: ignore
+        )
+    )
+    return {"detail": "User registered successfully."}
 
 
 @router.post("/token")
+# form_data will have username and password attributes
 async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = await authenticate_user(form_data.username, form_data.password)  # type: ignore
-    access_token = create_access_token(email=user.email)
+    access_token = create_access_token(email=user.email)  # type: ignore
     return {"access_token": access_token, "token_type": "bearer"}
 
 

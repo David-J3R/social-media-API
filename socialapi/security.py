@@ -120,9 +120,9 @@ async def authenticate_user(email: str, password: str):
     user = await get_user(email)
     if not user:
         raise create_credentials_exception("Incorrect email or password")
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.password):  # type: ignore
         raise create_credentials_exception("Incorrect email or password")
-    if not user.confirmed:
+    if not user.confirmed:  # type: ignore
         raise create_credentials_exception("User has not confirmed email")
     return user
 
