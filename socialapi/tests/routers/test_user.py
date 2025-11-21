@@ -14,7 +14,7 @@ async def register_user(async_client: AsyncClient, email: str, password: str):
 async def test_register_user(async_client: AsyncClient):
     response = await register_user(async_client, "test@example.com", "NotSecure123!")
     assert response.status_code == 201
-    assert "User registered successfully." in response.json()["detail"]
+    assert "Please confirm your email." in response.json()["detail"]
 
 
 # Test registering a user with an existing email
@@ -35,6 +35,10 @@ async def test_confirm_user(async_client: AsyncClient, mocker):
 
     await register_user(async_client, "test@example.com", "NotSecure123!")
 
+    # Access the confirmation_url from positional arguments
+    # spy.call_args[0] = (func, email, confirmation_url)
+    # Index 2 is the confirmation_url (3rd positional argument)
+    # Extract just the path from the URL object (e.g., /confirm/token123)
     confirmation_url = str(spy.call_args[1]["confirmation_url"])
     response = await async_client.get(confirmation_url)
 
@@ -58,6 +62,10 @@ async def test_confirm_user_expired_token(async_client: AsyncClient, mocker):
 
     await register_user(async_client, "test@example.com", "NotSecure123!")
 
+    # Access the confirmation_url from positional arguments
+    # spy.call_args[0] = (func, email, confirmation_url)
+    # Index 2 is the confirmation_url (3rd positional argument)
+    # Extract just the path from the URL object (e.g., /confirm/token123)
     confirmation_url = str(spy.call_args[1]["confirmation_url"])
     response = await async_client.get(confirmation_url)
 

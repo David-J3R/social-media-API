@@ -5,3 +5,4 @@ pytest
 pytest-asyncio  # for async test support
 pytest-mock # lightweight mocking for tests
 anyio  # for anyio backend support in tests
+pyfakefs  # for filesystem mocking in tests

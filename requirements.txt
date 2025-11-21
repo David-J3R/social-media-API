@@ -12,3 +12,5 @@ python-multipart # for file uploads
 passlib[bcrypt] # for password hashing
 bcrypt==3.2.2  # Pinned for passlib compatibility
 httpx # for making HTTP requests
+aiofiles # for async file handling
+b2sdk # Backblaze B2 SDK for Python

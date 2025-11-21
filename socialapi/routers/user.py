@@ -39,14 +39,13 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
     await database.execute(query)
     # Send Confirmation Email
     background_tasks.add_task(
-        task.send_user_registration_email(
-            user.email,
-            confirmation_url=request.url_for(
-                "confirm_email", token=create_confirmation_token(user.email)
-            ),  # type: ignore
-        )
+        task.send_user_registration_email,
+        user.email,
+        confirmation_url=request.url_for(
+            "confirm_email", token=create_confirmation_token(user.email)
+        ),
     )
-    return {"detail": "User registered successfully."}
+    return {"detail": "User created. Please confirm your email."}
 
 
 @router.post("/token")
