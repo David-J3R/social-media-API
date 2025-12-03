@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -13,6 +15,7 @@ class UserPost(UserPostIn):  # Class inheritance
     )  # for Pydantic dealing with ORM objects
     id: int
     user_id: int
+    image_url: Optional[str] = None
 
 
 # Post with Likes

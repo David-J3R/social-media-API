@@ -3,25 +3,7 @@ from fastapi import status
 from httpx import AsyncClient
 
 from socialapi import security
-
-
-# Helper function to create a post
-async def create_post(
-    body: str, async_client: AsyncClient, logged_in_token: str
-) -> dict:
-    response = await async_client.post(
-        "/post",
-        json={"body": body},
-        # Add Authorization header with Bearer token for authentication
-        headers={"Authorization": f"Bearer {logged_in_token}"},
-    )
-    return response.json()
-
-
-# Fixture to create a post before each test
-@pytest.fixture()
-async def created_post(async_client: AsyncClient, logged_in_token: str):
-    return await create_post("Test Post", async_client, logged_in_token)
+from socialapi.tests.helper import create_comment, create_post, like_post
 
 
 # Test create_post endpoint
@@ -43,6 +25,7 @@ async def test_create_post(
         "id": 1,
         "body": body,
         "user_id": confirmed_user["id"],
+        "image_url": None,
     }.items() <= response.json().items()
 
 
@@ -147,20 +130,38 @@ async def test_create_post_expired_token(
     assert "Token has expired" in response.json()["detail"]
 
 
-# ----- Test Comments ----- #
+# Create a fixture to prevent DeepAI API calls during tests
+@pytest.fixture()
+def mock_generate_cute_creature_api(mocker):
+    return mocker.patch(
+        "socialapi.task._generate_cute_creature_api",
+        return_value={"output_url": "https://example.com/fake_image.png"},
+    )
 
 
-# Helper function to create a comment
-async def create_comment(
-    body: str, post_id: int, async_client: AsyncClient, logged_in_token: str
-) -> dict:
+# test create post with prompt to generate image
+@pytest.mark.anyio
+async def test_create_post_with_prompt(
+    async_client: AsyncClient, logged_in_token: str, mock_generate_cute_creature_api
+):
+    body = "Test Post with Image"
+
     response = await async_client.post(
-        "/comment",
-        json={"body": body, "post_id": post_id},
-        # Add Authorization header with Bearer token for authentication
+        "/post?prompt=cute+puppy",
+        json={"body": body},
         headers={"Authorization": f"Bearer {logged_in_token}"},
     )
-    return response.json()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert {
+        "id": 1,
+        "body": body,
+        "image_url": None,
+    }.items() <= response.json().items()
+    mock_generate_cute_creature_api.assert_called()  # Ensure the mock was called
+
+
+# ----- Test Comments ----- #
 
 
 # Fixture to create a comment before each test
@@ -268,17 +269,6 @@ async def test_get_missing_post_with_comments(
 
 
 # --- Test likes ----
-# Helper function to like a post
-async def like_post(
-    post_id: int, async_client: AsyncClient, logged_in_token: str
-) -> dict:
-    response = await async_client.post(
-        "/like",
-        json={"post_id": post_id},
-        # Add Authorization header with Bearer token for authentication
-        headers={"Authorization": f"Bearer {logged_in_token}"},
-    )
-    return response.json()
 
 
 @pytest.mark.anyio

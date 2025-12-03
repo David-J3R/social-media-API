@@ -8,6 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient, Request, Response
 
+from socialapi.tests.helper import create_post
+
 os.environ["ENV_STATE"] = "test"
 from socialapi.database import database, user_table
 from socialapi.main import app  # noqa: E402
@@ -30,7 +32,7 @@ def client() -> Generator:
 async def db() -> AsyncGenerator:
     # Setup: Clear the in-memory tables before each test
     await database.connect()
-    yield
+    yield database
     # Teardown: Clear the in-memory tables after each test
     await database.disconnect()
 
@@ -115,3 +117,10 @@ def mock_httpx_client(mocker):
 
     # Return the mocked client for further assertions if needed
     return mocked_async_client
+
+
+# -- Helper fixtures ---
+# Fixture to create a post before each test
+@pytest.fixture()
+async def created_post(async_client: AsyncClient, logged_in_token: str):
+    return await create_post("Test Post", async_client, logged_in_token)
