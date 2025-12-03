@@ -43,7 +43,7 @@ async def register(user: UserIn, background_tasks: BackgroundTasks, request: Req
         user.email,
         confirmation_url=request.url_for(
             "confirm_email", token=create_confirmation_token(user.email)
-        ),
+        ),  # type: ignore
     )
     return {"detail": "User created. Please confirm your email."}
 
